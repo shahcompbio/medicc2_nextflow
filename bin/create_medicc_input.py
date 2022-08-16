@@ -75,8 +75,7 @@ def create_medicc2_input(
                 .isna().all(axis=1).groupby('chr').all().rename('null_chrom').reset_index().query('null_chrom == False'))
         cn_data = cn_data.merge(non_null_chroms[['chr']])
 
-    # HACK
-    metrics_data = metrics_data.query('quality > 0.75 and not is_s_phase and not is_control').head(20)
+    metrics_data = metrics_data.query('quality > 0.75 and not is_control')
     cn_data = cn_data.merge(
         metrics_data[['cell_id', 'library_id', 'sample_id']].rename(columns={
             'sample_id': 'original_sample_id',
@@ -112,9 +111,6 @@ def create_medicc2_input(
     medicc2_input.loc[medicc2_input['chr'] == 'X', 'chrom'] = chrom_X
     medicc2_input.loc[medicc2_input['chr'] == 'Y', 'chrom'] = chrom_Y
     medicc2_input['chrom'] = medicc2_input['chrom'].astype(int)
-
-    # HACK
-    medicc2_input = medicc2_input[medicc2_input['chrom'].isin([1, 2])]
 
     cols = [
         'sample_id',
