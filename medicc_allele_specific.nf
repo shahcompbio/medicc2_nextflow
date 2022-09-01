@@ -19,8 +19,8 @@ include { MEDICC } from './subworkflows/medicc'
 process GENERATE_MEDICC_INPUT {
     input:
         path signals_results
-        path annotation_metrics_csv
-        path annotation_metrics_csv_yaml
+        path annotation_metrics_csv, stageAs: 'annotation_metrics*.csv.gz'
+        path annotation_metrics_csv_yaml, stageAs: 'annotation_metrics*.csv.gz.yaml'
 
     output:
         path 'medicc_input.tsv', emit: medicc_input
