@@ -17,8 +17,21 @@ def load_tree(newick_filename):
     return tree
 
 
+medicc_input_dtype = {
+    'sample_id': 'category',
+    'chrom': 'category',
+    'start': int,
+    'end': int,
+    'chr': 'category',
+    'original_sample_id': 'category',
+    'original_library_id': 'category',
+    'cn_a': int,
+    'cn_b': int,
+}
+
+
 def plot_tree_cn(medicc_input_filename, tree_filename, cn_profiles_filename, tree_cn_figure, allele_specific):
-    medicc_input = pd.read_csv(medicc_input_filename, sep='\t')
+    medicc_input = pd.read_csv(medicc_input_filename, sep='\t', dtype=medicc_input_dtype)
 
     cell_info = medicc_input.rename(columns={
         'sample_id': 'cell_id',
