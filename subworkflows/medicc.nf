@@ -1,5 +1,5 @@
 
-params.medicc_args = "-j 400 --input-type t --verbose --plot none"
+params.medicc_args = "-j 400 --input-type t --verbose --plot none --no-plot-tree"
 
 process START_MEDICC_PARALLEL {
     input:
