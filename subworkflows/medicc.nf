@@ -52,7 +52,6 @@ process FINISH_MEDICC_PARALLEL {
         path "${params.results_basename}_events_overlap.tsv", emit: events_overlap
         path "${params.results_basename}_final_cn_profiles.tsv", emit: final_cn_profiles
         path "${params.results_basename}_final_tree.new", emit: final_tree_newick
-        path "${params.results_basename}_final_tree.png", emit: final_tree_png
         path "${params.results_basename}_final_tree.xml", emit: final_tree_xml
         path "${params.results_basename}_pairwise_distances.tsv", emit: pairwise_distances
         path "${params.results_basename}_summary.tsv", emit: summary
@@ -78,7 +77,6 @@ workflow MEDICC {
         events_overlap = FINISH_MEDICC_PARALLEL.out.events_overlap
         final_cn_profiles = FINISH_MEDICC_PARALLEL.out.final_cn_profiles
         final_tree_newick = FINISH_MEDICC_PARALLEL.out.final_tree_newick
-        final_tree_png = FINISH_MEDICC_PARALLEL.out.final_tree_png
         final_tree_xml = FINISH_MEDICC_PARALLEL.out.final_tree_xml
         pairwise_distances = FINISH_MEDICC_PARALLEL.out.pairwise_distances
         summary = FINISH_MEDICC_PARALLEL.out.summary
