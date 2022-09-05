@@ -12,7 +12,7 @@ params.output_directory ?: { log.error "No copy number data provided. Make sure 
 
 params.results_basename ?: { params.results_basename = 'output' }()
 
-medicc_args = "-j 400 --input-type t --verbose --plot none --no-plot-tree"
+params.medicc_args = "-j 400 --input-type t --verbose --plot none --no-plot-tree"
 
 include { MEDICC } from './subworkflows/medicc'
 
