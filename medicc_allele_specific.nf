@@ -23,11 +23,11 @@ process GENERATE_MEDICC_INPUT {
         path annotation_metrics_csv_yaml, stageAs: 'annotation_metrics*.csv.gz.yaml'
 
     output:
-        path 'medicc_input.tsv', emit: medicc_input
+        path "${params.results_basename}.tsv", emit: medicc_input
 
     script:
     """
-    create_medicc_input.py medicc_input.tsv --signals_results ${signals_results} --annotation_metrics ${annotation_metrics_csv.join(' --annotation_metrics ')}
+    create_medicc_input.py ${params.results_basename}.tsv --signals_results ${signals_results} --annotation_metrics ${annotation_metrics_csv.join(' --annotation_metrics ')}
     """
 }
 
@@ -50,6 +50,8 @@ workflow {
     GENERATE_MEDICC_INPUT(signals_results, annotation_metrics_csv, annotation_metrics_csv_yaml)
     MEDICC(GENERATE_MEDICC_INPUT.out.medicc_input)
     PLOT_MEDICC_RESULTS(GENERATE_MEDICC_INPUT.out.medicc_input, MEDICC.out.final_cn_profiles, MEDICC.out.final_tree_newick)
+
+    GENERATE_MEDICC_INPUT.out.medicc_input.subscribe { it.copyTo(params.output_directory) }
     PLOT_MEDICC_RESULTS.out.tree_cn_figure.subscribe { it.copyTo(params.output_directory) }
 }
 
