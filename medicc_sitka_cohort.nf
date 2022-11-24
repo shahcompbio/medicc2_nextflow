@@ -11,7 +11,7 @@ medicc_args = medicc_inputs.map({row -> tuple(row.id, row.medicc_args)})
 allele_specific = medicc_inputs.map({row -> tuple(row.id, row.allele_specific)})
 output_directory = medicc_inputs.map({row -> tuple(row.id, row.output_directory)})
 
-include { MEDICC_SITKA } from './medicc_sitka'
+include { MEDICC_SITKA } from './subworkflows/medicc_sitka'
 
 workflow {
     MEDICC_SITKA(tree, signals, medicc_args, allele_specific, output_directory)
