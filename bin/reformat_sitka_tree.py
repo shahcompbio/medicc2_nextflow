@@ -9,7 +9,7 @@ import sys
 import pandas as pd
 from Bio import Phylo
 
-sys.setrecursionlimit(1500)
+sys.setrecursionlimit(15000)
 
 
 def prune_leaves(clade, f):
