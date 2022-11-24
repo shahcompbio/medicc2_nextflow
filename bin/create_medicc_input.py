@@ -14,30 +14,33 @@ import click
 @click.option('--hmmcopy_reads', multiple=True)
 @click.option('--signals_results', multiple=True)
 @click.option('--annotation_metrics', multiple=True)
+@click.option('--allele_specific', is_flag=True)
 def create_medicc2_input(
         output_filename,
         hmmcopy_reads,
         signals_results,
         annotation_metrics,
+        allele_specific,
     ):
 
     if len(hmmcopy_reads) > 0:
         assert len(signals_results) == 0
-        allele_specific = False
+        assert len(annotation_metrics) > 0, 'medicc from raw hmmcopy will not work without filtering from annotation metrics'
+        assert allele_specific is not True, 'can only do total copy number from hmmcopy input'
 
     elif len(signals_results) > 0:
         assert len(hmmcopy_reads) == 0
-        allele_specific = True
 
     else:
         raise ValueError('specify either signals or hmmcopy input')
 
-    metrics_data = []
-    for filename in annotation_metrics:
-        metrics_data.append(scgenome.loaders.annotation.process_annotation_file(filename))
-    metrics_data = scgenome.utils.concat_with_categories(metrics_data, ignore_index=True)
+    if allele_specific:
+        cn_cols = ['cn_a', 'cn_b']
+    
+    else:
+        cn_cols = ['cn']
 
-    if not allele_specific:
+    if len(hmmcopy_reads) > 0:
         cn_data = []
         for filename in hmmcopy_reads:
             cn_data.append(scgenome.loaders.hmmcopy.process_hmmcopy_data(
@@ -45,7 +48,6 @@ def create_medicc2_input(
         cn_data = scgenome.utils.concat_with_categories(cn_data, ignore_index=True)
 
         cn_data['cn'] = cn_data['state']
-        cn_cols = ['cn']
 
     else:
         signals_dtype = {
@@ -57,6 +59,7 @@ def create_medicc2_input(
             'start',
             'end',
             'cell_id',
+            'state',
             'Maj',
             'Min',
         ]
@@ -65,9 +68,9 @@ def create_medicc2_input(
             cn_data.append(pd.read_csv(filename, dtype=signals_dtype, usecols=signals_cols))
         cn_data = scgenome.utils.concat_with_categories(cn_data, ignore_index=True)
 
+        cn_data['cn'] = cn_data['state']
         cn_data['cn_a'] = cn_data['Maj']
         cn_data['cn_b'] = cn_data['Min']
-        cn_cols = ['cn_a', 'cn_b']
 
         # Remove chromosomes for which all bins are null in all cells (eg Y chromosome)
         non_null_chroms = (
@@ -75,12 +78,24 @@ def create_medicc2_input(
                 .isna().all(axis=1).groupby('chr').all().rename('null_chrom').reset_index().query('null_chrom == False'))
         cn_data = cn_data.merge(non_null_chroms[['chr']])
 
-    metrics_data = metrics_data.query('quality > 0.75 and not is_control')
-    cn_data = cn_data.merge(
-        metrics_data[['cell_id', 'library_id', 'sample_id']].rename(columns={
-            'sample_id': 'original_sample_id',
-            'library_id': 'original_library_id',
-    }))
+    # Filter using annotation metrics if provided
+    if len(annotation_metrics) > 0:
+        metrics_data = []
+        for filename in annotation_metrics:
+            metrics_data.append(scgenome.loaders.annotation.process_annotation_file(filename))
+        metrics_data = scgenome.utils.concat_with_categories(metrics_data, ignore_index=True)
+
+        metrics_data = metrics_data.query('quality > 0.75 and not is_control')
+        cn_data = cn_data.merge(
+            metrics_data[['cell_id', 'library_id', 'sample_id']].rename(columns={
+                'sample_id': 'original_sample_id',
+                'library_id': 'original_library_id',
+        }))
+    
+    # HACK: Parse cell id for sample and library
+    else:
+        cn_data['original_sample_id'] = cn_data['cell_id'].str.rsplit('-', expand=True, n=3)[0]
+        cn_data['original_library_id'] = cn_data['cell_id'].str.rsplit('-', expand=True, n=3)[1]
 
     null_bins = (
         cn_data.set_index(['chr', 'start', 'end', 'cell_id'])[cn_cols].unstack()

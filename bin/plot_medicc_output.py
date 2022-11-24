@@ -60,7 +60,7 @@ def plot_tree_cn(medicc_input_filename, tree_filename, cn_profiles_filename, tre
 @click.argument('cn_profiles_filename')
 @click.argument('tree_filename')
 @click.argument('tree_cn_figure')
-@click.option("--allele_specific", is_flag=True)
+@click.option('--allele_specific', is_flag=True)
 def medicc_plots(
         medicc_input_filename,
         cn_profiles_filename,
