@@ -132,6 +132,8 @@ def test_merge_single_child_clades(tree_filename):
         n.branch_length = 1.
 
     tree1 = Bio.Phylo.BaseTree.Tree.from_clade(merge_single_child_clades(tree1.clade))
+    tree1.rooted = False
+    tree1.weight = 1.0
     tree2 = merge_single_child_clades2(tree2)
 
     assert str(tree1) == str(tree2)
