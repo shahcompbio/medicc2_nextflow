@@ -134,7 +134,10 @@ def test_merge_single_child_clades(tree_filename):
     tree1 = Bio.Phylo.BaseTree.Tree.from_clade(merge_single_child_clades(tree1.clade))
     tree1.rooted = False
     tree1.weight = 1.0
+
     tree2 = merge_single_child_clades2(tree2)
+    tree2.rooted = False
+    tree2.weight = 1.0
 
     assert str(tree1) == str(tree2)
 
@@ -146,7 +149,10 @@ def test_split_polytomies(tree_filename):
     tree1 = Bio.Phylo.BaseTree.Tree.from_clade(split_polytomies(tree1.clade))
     tree1.rooted = False
     tree1.weight = 1.0
+
     tree2 = split_polytomies2(tree2)
+    tree2.rooted = False
+    tree2.weight = 1.0
 
     assert str(tree1) == str(tree2)
 
@@ -162,7 +168,10 @@ def test_prune_leaves(tree_filename):
     tree1 = Bio.Phylo.BaseTree.Tree.from_clade(prune_leaves(tree1.clade, lambda n: n.name not in selected))
     tree1.rooted = False
     tree1.weight = 1.0
+
     tree2 = prune_leaves2(tree2, lambda n: n.name not in selected)
+    tree2.rooted = False
+    tree2.weight = 1.0
 
     assert str(tree1) == str(tree2)
 
