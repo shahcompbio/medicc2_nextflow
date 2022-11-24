@@ -7,12 +7,13 @@ process CONVERT_SITKA_TREE {
 
     output:
         tuple val(id), path("${id}_tree_converted.newick"), emit: tree_converted
+        tuple val(id), path("${id}_signals_filtered.csv.gz"), emit: signals_filtered
 
     publishDir "${output_directory}", mode: 'copy', overwrite: true
 
     script:
     """
-    reformat_sitka_tree.py ${tree} ${signals} ${id}_tree_converted.newick signals_results.csv.gz
+    reformat_sitka_tree.py ${tree} ${signals} ${id}_tree_converted.newick ${id}_signals_filtered.csv.gz
     """
 }
 
@@ -78,7 +79,7 @@ workflow MEDICC_SITKA {
         CONVERT_SITKA_TREE(tree
             .join(signals)
             .join(output_directory))
-        GENERATE_MEDICC_INPUT(signals
+        GENERATE_MEDICC_INPUT(CONVERT_SITKA_TREE.out.signals_filtered
             .join(allele_specific)
             .join(output_directory))
         RUN_MEDICC_WITH_TREE(GENERATE_MEDICC_INPUT.out.medicc_input
