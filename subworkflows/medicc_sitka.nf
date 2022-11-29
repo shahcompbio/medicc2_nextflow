@@ -19,7 +19,7 @@ process CONVERT_SITKA_TREE {
 
 process GENERATE_MEDICC_INPUT {
     input:
-        tuple val(id), path(signals), val(allele_specific), val(output_directory)
+        tuple val(id), path(signals), path(segments), val(allele_specific), val(output_directory)
 
     output:
         tuple val(id), path("${id}.tsv"), emit: medicc_input
@@ -28,7 +28,7 @@ process GENERATE_MEDICC_INPUT {
 
     script:
     """
-    create_medicc_input.py ${id}.tsv --signals_results ${signals} ${allele_specific}
+    create_medicc_input.py ${id}.tsv --signals_results ${signals} --segments_filename ${segments} ${allele_specific}
     """
 }
 
@@ -72,6 +72,7 @@ workflow MEDICC_SITKA {
     take:
         tree
         signals
+        segments
         medicc_args
         allele_specific
         output_directory
@@ -80,6 +81,7 @@ workflow MEDICC_SITKA {
             .join(signals)
             .join(output_directory))
         GENERATE_MEDICC_INPUT(CONVERT_SITKA_TREE.out.signals_filtered
+            .join(segments)
             .join(allele_specific)
             .join(output_directory))
         RUN_MEDICC_WITH_TREE(GENERATE_MEDICC_INPUT.out.medicc_input

@@ -7,6 +7,7 @@ medicc_inputs = Channel.fromPath(params.catalog) |
 
 tree = medicc_inputs.map({row -> tuple(row.id, file(row.tree_filename, checkIfExists: true))})
 signals = medicc_inputs.map({row -> tuple(row.id, file(row.signals_filename, checkIfExists: true))})
+segments = medicc_inputs.map({row -> tuple(row.id, file(row.segments_filename, checkIfExists: true))})
 medicc_args = medicc_inputs.map({row -> tuple(row.id, row.medicc_args)})
 allele_specific = medicc_inputs.map({row -> tuple(row.id, row.allele_specific)})
 output_directory = medicc_inputs.map({row -> tuple(row.id, row.output_directory)})
@@ -14,5 +15,5 @@ output_directory = medicc_inputs.map({row -> tuple(row.id, row.output_directory)
 include { MEDICC_SITKA } from './subworkflows/medicc_sitka'
 
 workflow {
-    MEDICC_SITKA(tree, signals, medicc_args, allele_specific, output_directory)
+    MEDICC_SITKA(tree, signals, segments, medicc_args, allele_specific, output_directory)
 }
