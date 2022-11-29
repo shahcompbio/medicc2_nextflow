@@ -6,7 +6,62 @@ import scgenome.loaders.annotation
 import scgenome.loaders.hmmcopy
 import scgenome.utils
 import pandas as pd
+import pyranges as pr
+import numpy as np
 import click
+
+
+
+def dataframe_to_pyranges(data):
+    data = pr.PyRanges(data.rename(columns={
+        'chr': 'Chromosome',
+        'start': 'Start',
+        'end': 'End',
+    }))
+
+    return data
+
+
+def pyranges_to_dataframe(data):
+    data = data.as_df().rename(columns={
+        'Chromosome': 'chr',
+        'Start': 'start',
+        'End': 'end',
+    })
+
+    return data
+
+
+def resegment(cn_data, segments, cn_cols):
+    def create_segments(df):
+        positions = np.unique(np.concatenate([(df['start'] - 1).values, df['end'].values]))
+        return pd.DataFrame({'start': positions[:-1:] + 1, 'end': positions[1::]})
+
+    # Consolodate segments
+    segments = segments.groupby(['chr'], observed=True).apply(create_segments).reset_index()[['chr', 'start', 'end']].sort_values(['chr', 'start'])
+
+    bins = cn_data[['chr', 'start', 'end']].drop_duplicates()
+
+    segments['segment_idx'] = range(len(segments.index))
+    bins['bin_idx'] = range(len(bins.index))
+
+    pyr_bins = dataframe_to_pyranges(bins)
+    pyr_segments = dataframe_to_pyranges(segments)
+
+    intersect_1 = pyr_segments.intersect(pyr_bins)
+    intersect_2 = pyr_bins.intersect(pyr_segments)
+
+    intersect = pd.merge(
+        pyranges_to_dataframe(intersect_1),
+        pyranges_to_dataframe(intersect_2))
+
+    cn_data = cn_data.merge(intersect, how='left')
+    assert not cn_data['segment_idx'].isnull().any()
+
+    segment_data = cn_data.groupby(['cell_id', 'segment_idx'], observed=True)[cn_cols].mean().round().astype(int).reset_index()
+    segment_data = segment_data.merge(segments)
+
+    return segment_data
 
 
 @click.command()
@@ -14,12 +69,14 @@ import click
 @click.option('--hmmcopy_reads', multiple=True)
 @click.option('--signals_results', multiple=True)
 @click.option('--annotation_metrics', multiple=True)
+@click.option('--segments_filename')
 @click.option('--allele_specific', is_flag=True)
 def create_medicc2_input(
         output_filename,
         hmmcopy_reads,
         signals_results,
         annotation_metrics,
+        segments_filename,
         allele_specific,
     ):
 
@@ -78,6 +135,19 @@ def create_medicc2_input(
                 .isna().all(axis=1).groupby('chr').all().rename('null_chrom').reset_index().query('null_chrom == False'))
         cn_data = cn_data.merge(non_null_chroms[['chr']])
 
+    # Resegment according to input segments
+    if segments_filename is not None:
+        segments = pd.read_csv(segments_filename, dtype={'chr': str})
+
+        # Require the same set of chromosomes between segments and cn_data
+        segments = segments[segments['chr'].isin(cn_data['chr'].unique())]
+        cn_data = cn_data[cn_data['chr'].isin(segments['chr'].unique())]
+
+        cn_data = resegment(cn_data, segments, cn_cols)
+
+    else:
+        raise ValueError('failed check')
+
     # Filter using annotation metrics if provided
     if len(annotation_metrics) > 0:
         metrics_data = []
@@ -91,7 +161,7 @@ def create_medicc2_input(
                 'sample_id': 'original_sample_id',
                 'library_id': 'original_library_id',
         }))
-    
+
     # HACK: Parse cell id for sample and library
     else:
         cn_data['original_sample_id'] = cn_data['cell_id'].str.rsplit('-', expand=True, n=3)[0]
