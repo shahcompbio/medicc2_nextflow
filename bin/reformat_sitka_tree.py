@@ -183,7 +183,7 @@ def test_tree_algs(tree_filename):
     test_prune_leaves(tree_filename)
 
 
-def prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, reformatted_table_filename):
+def prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, reformatted_table_filename, cell_list_filename):
     # read in table and tree
     tree = Phylo.read(tree_filename, 'newick')
     table = pd.read_csv(table_filename)
@@ -205,6 +205,13 @@ def prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, ref
 
     table = table[table['cell_id'].isin(intersection_cells)]
     tree = Bio.Phylo.BaseTree.Tree.from_clade(prune_leaves(tree.clade, lambda n: n.name not in intersection_cells))
+
+    # further restrict to cell list if present
+    if cell_list_filename and cell_list_filename != 'None':
+        list_cells = set([c.strip() for c in open(cell_list_filename, 'r').readlines()])
+        
+        table = table[table['cell_id'].isin(list_cells)]
+        tree = Bio.Phylo.BaseTree.Tree.from_clade(prune_leaves(tree.clade, lambda n: n.name not in list_cells))
 
     # Remove chains
     tree = Bio.Phylo.BaseTree.Tree.from_clade(merge_single_child_clades(tree.clade))
@@ -237,14 +244,16 @@ def prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, ref
 @click.argument('table_filename')
 @click.argument('reformatted_tree_filename')
 @click.argument('reformatted_table_filename')
+@click.option('--cell_list')
 def reformat_sitka_tree_for_medicc(
         tree_filename,
         table_filename,
         reformatted_tree_filename,
-        reformatted_table_filename
+        reformatted_table_filename,
+        cell_list
 ):
     test_tree_algs(tree_filename)
-    prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, reformatted_table_filename)
+    prepare_inputs(tree_filename, table_filename, reformatted_tree_filename, reformatted_table_filename, cell_list)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,11 @@
 #!/usr/bin/env nextflow
-
+params.medicc_args = """-j 400 --input-type t --verbose --plot none --no-plot-tree \
+--chromosomes-bed /juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed \
+--regions-bed /juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed"""
 
 process CONVERT_SITKA_TREE {
     input:
-        tuple val(id), path(tree), path(signals), val(output_directory)
+        tuple val(id), path(tree), path(signals), val(output_directory), val(cell_list)
 
     output:
         tuple val(id), path("${id}_tree_converted.newick"), emit: tree_converted
@@ -13,13 +15,13 @@ process CONVERT_SITKA_TREE {
 
     script:
     """
-    reformat_sitka_tree.py ${tree} ${signals} ${id}_tree_converted.newick ${id}_signals_filtered.csv.gz
+    reformat_sitka_tree.py ${tree} ${signals} ${id}_tree_converted.newick ${id}_signals_filtered.csv.gz --cell_list ${cell_list}
     """
 }
 
 process GENERATE_MEDICC_INPUT {
     input:
-        tuple val(id), path(signals), path(segments), val(allele_specific), val(output_directory)
+        tuple val(id), path(signals), path(segments), val(allele_specific), val(cell_list), val(output_directory)
 
     output:
         tuple val(id), path("${id}.tsv"), emit: medicc_input
@@ -28,7 +30,7 @@ process GENERATE_MEDICC_INPUT {
 
     script:
     """
-    create_medicc_input.py ${id}.tsv --signals_results ${signals} --segments_filename ${segments} ${allele_specific}
+    create_medicc_input.py ${id}.tsv --signals_results ${signals} --segments_filename ${segments} ${allele_specific} --cell_list ${cell_list}
     """
 }
 
@@ -49,7 +51,7 @@ process RUN_MEDICC_WITH_TREE {
 
     script:
     """
-    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree ${medicc_args} --tree ${tree} ${medicc_input} ./
+    medicc2 ${params.medicc_args} ${medicc_args} --tree ${tree} ${medicc_input} ./
     """
 }
 
@@ -75,14 +77,17 @@ workflow MEDICC_SITKA {
         segments
         medicc_args
         allele_specific
+        cell_list
         output_directory
     main:
         CONVERT_SITKA_TREE(tree
             .join(signals)
-            .join(output_directory))
+            .join(output_directory)
+            .join(cell_list))
         GENERATE_MEDICC_INPUT(CONVERT_SITKA_TREE.out.signals_filtered
             .join(segments)
             .join(allele_specific)
+            .join(cell_list)
             .join(output_directory))
         RUN_MEDICC_WITH_TREE(GENERATE_MEDICC_INPUT.out.medicc_input
             .join(CONVERT_SITKA_TREE.out.tree_converted)

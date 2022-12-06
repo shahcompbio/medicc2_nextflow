@@ -1,5 +1,7 @@
 
-params.medicc_args = "-j 400 --input-type t --verbose --plot none --no-plot-tree"
+params.medicc_args = """-j 400 --input-type t --verbose --plot none --no-plot-tree \
+--chromosomes-bed /juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed \
+--regions-bed /juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed"""
 
 process START_MEDICC_PARALLEL {
     input:
