@@ -71,6 +71,7 @@ def resegment(cn_data, segments, cn_cols):
 @click.option('--annotation_metrics', multiple=True)
 @click.option('--segments_filename')
 @click.option('--allele_specific', is_flag=True)
+@click.option('--cell_list')
 def create_medicc2_input(
         output_filename,
         hmmcopy_reads,
@@ -78,6 +79,7 @@ def create_medicc2_input(
         annotation_metrics,
         segments_filename,
         allele_specific,
+        cell_list
     ):
 
     if len(hmmcopy_reads) > 0:
@@ -166,6 +168,11 @@ def create_medicc2_input(
     else:
         cn_data['original_sample_id'] = cn_data['cell_id'].str.rsplit('-', expand=True, n=3)[0]
         cn_data['original_library_id'] = cn_data['cell_id'].str.rsplit('-', expand=True, n=3)[1]
+
+    # Restrict to cells in cell_list if present
+    if cell_list and cell_list != 'None':
+        list_cells = set(c.strip() for c in open(cell_list, 'r').readlines())
+        cn_data = cn_data[cn_data['cell_id'].isin(list_cells)]
 
     null_bins = (
         cn_data.set_index(['chr', 'start', 'end', 'cell_id'])[cn_cols].unstack()
