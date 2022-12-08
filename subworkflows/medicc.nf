@@ -60,7 +60,9 @@ process FINISH_MEDICC_PARALLEL {
 
     script:
     """
-    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree ${medicc_args} --finish-external-parallel --task-dir ./ ${medicc_input} ./
+    CHROMOSOMES_BED=/juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed
+    REGIONS_BED=/juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed
+    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} --finish-external-parallel --task-dir ./ ${medicc_input} ./
     """
 }
 
