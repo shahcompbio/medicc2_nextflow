@@ -8,13 +8,17 @@ process START_MEDICC_PARALLEL {
         tuple val(id), path(medicc_input), val(medicc_args)
 
     output:
-        tuple val(id), path('task_*.pickle'), emit: tasks
+        tuple val(id), path("${id}_task_*.pickle"), emit: tasks
         tuple val(id), path('tasks.pickle'), emit: task_idxs
         tuple val(id), path('sample_labels.pickle'), emit: sample_labels
 
     script:
     """
-    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree ${medicc_args} --start-external-parallel --task-dir ./ ${medicc_input} dummy_path
+    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree ${medicc_args} --prefix ${id} --start-external-parallel --task-dir ./ ${medicc_input} dummy_path
+    
+    for filename in task_*.pickle; do
+        mv \$filename ${id}_\$filename
+    done
     """
 }
 
@@ -62,7 +66,11 @@ process FINISH_MEDICC_PARALLEL {
     """
     CHROMOSOMES_BED=/juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed
     REGIONS_BED=/juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed
-    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} --finish-external-parallel --task-dir ./ ${medicc_input} ./
+    
+    for filename in ${id}_task_*.pickle; do
+        mv \$filename \${filename##${id}_}
+    done
+    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} --prefix ${id} --finish-external-parallel --task-dir ./ ${medicc_input} ./
     """
 }
 
