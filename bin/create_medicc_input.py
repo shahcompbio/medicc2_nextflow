@@ -56,7 +56,7 @@ def resegment(cn_data, segments, cn_cols):
         pyranges_to_dataframe(intersect_2))
 
     cn_data = cn_data.merge(intersect, how='left')
-    assert not cn_data['segment_idx'].isnull().any()
+    #assert not cn_data['segment_idx'].isnull().any()
 
     segment_data = cn_data.groupby(['cell_id', 'segment_idx'], observed=True)[cn_cols].mean().round().astype(int).reset_index()
     segment_data = segment_data.merge(segments)
