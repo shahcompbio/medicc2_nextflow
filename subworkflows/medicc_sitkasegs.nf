@@ -4,9 +4,10 @@
 include { MEDICC } from './medicc'
 
 
+
 process GENERATE_MEDICC_INPUT {
     input:
-        tuple val(id), path(signals), path(segments), val(allele_specific), val(output_directory)
+        tuple val(id), path(signals), path(segments), val(allele_specific), val(cell_list), val(output_directory)
 
     output:
         tuple val(id), path("${id}.tsv"), emit: medicc_input
@@ -15,7 +16,7 @@ process GENERATE_MEDICC_INPUT {
 
     script:
     """
-    create_medicc_input.py ${id}.tsv --signals_results ${signals} --segments_filename ${segments} ${allele_specific}
+    create_medicc_input.py ${id}.tsv --signals_results ${signals} --segments_filename ${segments} ${allele_specific} --cell_list ${cell_list}
     """
 }
 
@@ -40,11 +41,13 @@ workflow MEDICC_SITKA {
         segments
         medicc_args
         allele_specific
+        cell_list
         output_directory
     main:
         GENERATE_MEDICC_INPUT(signals
             .join(segments)
             .join(allele_specific)
+            .join(cell_list)
             .join(output_directory))
         MEDICC(
             GENERATE_MEDICC_INPUT.out.medicc_input,

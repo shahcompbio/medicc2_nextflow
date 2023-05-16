@@ -10,9 +10,10 @@ segments = medicc_inputs.map({row -> tuple(row.id, file(row.segments_filename, c
 medicc_args = medicc_inputs.map({row -> tuple(row.id, row.medicc_args)})
 allele_specific = medicc_inputs.map({row -> tuple(row.id, row.allele_specific)})
 output_directory = medicc_inputs.map({row -> tuple(row.id, row.output_directory)})
+cell_list = medicc_inputs.map({row -> tuple(row.id, row.cell_list)})
 
 include { MEDICC_SITKA } from './subworkflows/medicc_sitkasegs'
 
 workflow {
-    MEDICC_SITKA(signals, segments, medicc_args, allele_specific, output_directory)
+    MEDICC_SITKA(signals, segments, medicc_args, allele_specific, cell_list, output_directory)
 }
