@@ -17,6 +17,9 @@ params.medicc_args = """-j 400 --input-type t --verbose --plot none --no-plot-tr
 --chromosomes-bed /juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed \
 --regions-bed /juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed"""
 
+params.cell_list = "None"
+cell_list = Channel.of(tuple(params.id, params.cell_list))
+
 // Conditional arguments
 params.allele_specific = ""
 if (params.allele_specific == true){
@@ -31,5 +34,5 @@ if (params.allele_specific == true){
 include { MEDICC_SITKA } from './subworkflows/medicc_sitkasegs'
 
 workflow {
-    MEDICC_SITKA(signals, segments, medicc_args, allele_specific, output_directory)
+    MEDICC_SITKA(signals, segments, medicc_args, allele_specific, output_directory, cell_list)
 }
