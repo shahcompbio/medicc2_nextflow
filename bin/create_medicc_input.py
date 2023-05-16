@@ -32,13 +32,9 @@ def pyranges_to_dataframe(data):
     return data
 
 
-def resegment(cn_data, segments, cn_cols):
-    def create_segments(df):
-        positions = np.unique(np.concatenate([(df['start'] - 1).values, df['end'].values]))
-        return pd.DataFrame({'start': positions[:-1:] + 1, 'end': positions[1::]})
-
+def resegment(cn_data, segments, cn_cols, allow_bins_dropped = True):
     # Consolodate segments
-    segments = segments.groupby(['chr'], observed=True).apply(create_segments).reset_index()[['chr', 'start', 'end']].sort_values(['chr', 'start'])
+    segments = segments[['chr', 'start', 'end']].drop_duplicates().sort_values(['chr', 'start']).reset_index(drop = True)
 
     bins = cn_data[['chr', 'start', 'end']].drop_duplicates()
 
@@ -56,12 +52,14 @@ def resegment(cn_data, segments, cn_cols):
         pyranges_to_dataframe(intersect_2))
 
     cn_data = cn_data.merge(intersect, how='left')
-    #assert not cn_data['segment_idx'].isnull().any()
+    if not allow_bins_dropped:
+        assert not cn_data['segment_idx'].isnull().any()
 
     segment_data = cn_data.groupby(['cell_id', 'segment_idx'], observed=True)[cn_cols].mean().round().astype(int).reset_index()
+    
     segment_data = segment_data.merge(segments)
-
     return segment_data
+
 
 
 @click.command()
