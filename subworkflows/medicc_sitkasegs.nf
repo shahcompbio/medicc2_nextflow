@@ -6,6 +6,8 @@ include { MEDICC } from './medicc'
 
 
 process GENERATE_MEDICC_INPUT {
+    conda '/juno/home/myersm2/miniconda3/envs/misseg'
+
     input:
         tuple val(id), path(signals), path(segments), val(allele_specific), val(cell_list), val(output_directory)
 
@@ -21,6 +23,8 @@ process GENERATE_MEDICC_INPUT {
 }
 
 process PLOT_MEDICC_RESULTS {
+    conda '/juno/home/myersm2/miniconda3/envs/misseg'
+
     input:
         tuple val(id), path(medicc_input), path(cn_profiles), path(tree), val(allele_specific), val(output_directory)
 
