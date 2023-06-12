@@ -19,7 +19,7 @@ process RUN_MEDICC {
     """
     CHROMOSOMES_BED=/juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed
     REGIONS_BED=/juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed 
-    medicc2 -j 32 --input-type t --events --verbose --plot none --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} ${medicc_input} ./
+    medicc2 -j 64 --input-type t --events --verbose --plot none --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} ${medicc_input} ./
     """
 }
 
