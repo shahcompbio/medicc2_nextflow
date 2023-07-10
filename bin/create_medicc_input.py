@@ -111,23 +111,29 @@ def create_medicc2_input(
             'chr': 'category',
             'cell_id': 'category',
         }
+
+        cn_data = []
+        for filename in signals_results:
+            cn_data.append(pd.read_csv(filename, dtype=signals_dtype))
+        cn_data = scgenome.utils.concat_with_categories(cn_data, ignore_index=True)
+
+        if 'Min' in cn_data.columns:
+            signals_cn_cols = ['Maj', 'Min']
+            use_minmaj = True
+        else:
+            signals_cn_cols = ['A', 'B']
+            use_minmaj = False
         signals_cols = [
             'chr',
             'start',
             'end',
             'cell_id',
-            'state',
-            'Maj',
-            'Min',
-        ]
-        cn_data = []
-        for filename in signals_results:
-            cn_data.append(pd.read_csv(filename, dtype=signals_dtype, usecols=signals_cols))
-        cn_data = scgenome.utils.concat_with_categories(cn_data, ignore_index=True)
+            'state'] + signals_cn_cols
+        cn_data = cn_data[signals_cols]
 
         cn_data['cn'] = cn_data['state']
-        cn_data['cn_a'] = cn_data['Maj']
-        cn_data['cn_b'] = cn_data['Min']
+        cn_data['cn_a'] = cn_data['Maj' if use_minmaj else 'A']
+        cn_data['cn_b'] = cn_data['Min' if use_minmaj else 'B']
 
         # Remove chromosomes for which all bins are null in all cells (eg Y chromosome)
         non_null_chroms = (
