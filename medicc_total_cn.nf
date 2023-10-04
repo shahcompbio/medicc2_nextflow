@@ -51,7 +51,7 @@ process PLOT_MEDICC_RESULTS {
 
 workflow {
     GENERATE_MEDICC_INPUT(hmmcopy_results_csv, hmmcopy_results_csv_yaml, annotation_metrics_csv, annotation_metrics_csv_yaml)
-    MEDICC(GENERATE_MEDICC_INPUT.out.medicc_input)
+    MEDICC(GENERATE_MEDICC_INPUT.out.medicc_input, Channel.of(params.medicc_args), Channel.of(params.output_directory))
     PLOT_MEDICC_RESULTS(GENERATE_MEDICC_INPUT.out.medicc_input, MEDICC.out.final_cn_profiles, MEDICC.out.final_tree_newick)
 
     GENERATE_MEDICC_INPUT.out.medicc_input.subscribe { it.copyTo(params.output_directory) }
