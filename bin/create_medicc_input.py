@@ -9,7 +9,7 @@ import pandas as pd
 import pyranges as pr
 import numpy as np
 import click
-
+import csverve
 
 
 def dataframe_to_pyranges(data):
@@ -100,8 +100,7 @@ def create_medicc2_input(
     if len(hmmcopy_reads) > 0:
         cn_data = []
         for filename in hmmcopy_reads:
-            cn_data.append(scgenome.loaders.hmmcopy.process_hmmcopy_data(
-                filename, usecols=scgenome.loaders.hmmcopy.standard_hmmcopy_reads_cols))
+            cn_data.append(csverve.api.api.read_csv(filename))
         cn_data = scgenome.utils.concat_with_categories(cn_data, ignore_index=True)
 
         cn_data['cn'] = cn_data['state']
@@ -151,14 +150,11 @@ def create_medicc2_input(
 
         cn_data = resegment(cn_data, segments, cn_cols)
 
-    else:
-        raise ValueError('failed check')
-
     # Filter using annotation metrics if provided
     if len(annotation_metrics) > 0:
         metrics_data = []
         for filename in annotation_metrics:
-            metrics_data.append(scgenome.loaders.annotation.process_annotation_file(filename))
+            metrics_data.append(csverve.api.api.read_csv(filename))
         metrics_data = scgenome.utils.concat_with_categories(metrics_data, ignore_index=True)
 
         metrics_data = metrics_data.query('quality > 0.75 and not is_control')
