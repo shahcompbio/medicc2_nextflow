@@ -70,7 +70,7 @@ process FINISH_MEDICC_PARALLEL {
     for filename in ${id}_task_*.pickle; do
         mv \$filename \${filename##${id}_}
     done
-    medicc2 -j 400 --input-type t --verbose --plot none --no-plot-tree --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} --prefix ${id} --finish-external-parallel --task-dir ./ ${medicc_input} ./
+    medicc2 -j 400 --input-type t --verbose --plot none --events --no-plot-tree --chromosomes-bed \$CHROMOSOMES_BED --regions-bed \$REGIONS_BED ${medicc_args} --prefix ${id} --finish-external-parallel --task-dir ./ ${medicc_input} ./
     """
 }
 
