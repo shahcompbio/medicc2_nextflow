@@ -36,7 +36,7 @@ process RUN_MEDICC_WITH_TREE {
 
     script:
     """
-    medicc2 ${params.medicc_args} ${medicc_args} --tree ${tree} ${medicc_input} ./ --prefix ${id}
+    medicc2 ${params.medicc_args} ${medicc_args} --tree ${tree} --events ${medicc_input} ./ --prefix ${id}
     """
 }
 
