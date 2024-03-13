@@ -2,9 +2,6 @@
 
 import logging
 import sys
-import scgenome.loaders.annotation
-import scgenome.loaders.hmmcopy
-import scgenome.utils
 import Bio.Phylo
 import pandas as pd
 import click

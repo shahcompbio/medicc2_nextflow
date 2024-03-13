@@ -2,8 +2,6 @@
 
 import logging
 import sys
-import scgenome.loaders.annotation
-import scgenome.loaders.hmmcopy
 import scgenome.utils
 import pandas as pd
 import pyranges as pr
@@ -55,6 +53,7 @@ def resegment(cn_data, segments, cn_cols, allow_bins_dropped = True):
     if not allow_bins_dropped:
         assert not cn_data['segment_idx'].isnull().any()
 
+    cn_data = cn_data.dropna()
     segment_data = cn_data.groupby(['cell_id', 'segment_idx'], observed=True)[cn_cols].mean().round().astype(int).reset_index()
     
     segment_data = segment_data.merge(segments)
