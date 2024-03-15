@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 
-include { MEDICC } from './medicc'
+include { MEDICC } from './medicc_serial'
 
 
 
