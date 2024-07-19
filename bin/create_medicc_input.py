@@ -170,8 +170,20 @@ def create_medicc2_input(
 
     # Restrict to cells in cell_list if present
     if cell_list and cell_list != 'None':
+        print('>>>>>>>>>>>>>>>>>>>>>>>', cell_list)
         list_cells = set(c.strip() for c in open(cell_list, 'r').readlines())
         cn_data = cn_data[cn_data['cell_id'].isin(list_cells)]
+
+    # Fill NaN segments with 0s, assuming that these result from 0-read bins
+    # (they may also be produced by gc=-1 sections, which should then be uniformly represented among all cells)
+
+    metadata = cn_data[['cell_id', 'original_sample_id', 'original_library_id']].drop_duplicates()
+    new_cn_data = cn_data.copy()
+    new_cn_data = new_cn_data.set_index(['chr', 'start', 'end', 'segment_idx', 'cell_id'])[cn_cols].unstack().fillna(0).stack(future_stack=True).reset_index()
+    new_cn_data.segment_idx = new_cn_data.segment_idx.astype(int)
+    new_cn_data.cn = new_cn_data.cn.astype(int)
+    new_cn_data = new_cn_data.merge(metadata)[cn_data.columns]
+    cn_data = new_cn_data
 
     null_bins = (
         cn_data.set_index(['chr', 'start', 'end', 'cell_id'])[cn_cols].unstack()
