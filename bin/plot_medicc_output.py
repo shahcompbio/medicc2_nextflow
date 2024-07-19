@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import anndata as ad
 import numpy as np
 import pyranges as pr
+import scgenome
 
 def load_tree(newick_filename):
     tree = Bio.Phylo.read(newick_filename, 'newick')
@@ -117,6 +118,10 @@ def plot_tree_cn(medicc_input_filename, tree_filename, cn_profiles_filename, tre
     if not np.all(adata.var.end - adata.var.start == adata.var.iloc[0].end - adata.var.iloc[0].start):
         # Bins/segments have different lengths
         adata = segments2bins(adata)
+
+    if 'diploid' in adata.obs.index:
+        adata = adata[adata.obs.index != 'diploid']
+        tree.prune('diploid')
 
     tree, adata = scgenome.tl.align_cn_tree(tree, adata)
 
