@@ -1,10 +1,10 @@
 
-params.medicc_args = """-j 400 --input-type t --verbose --plot none --no-plot-tree --events \
---chromosomes-bed /juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed \
---regions-bed /juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed"""
+params.medicc_args = """-j 8 --input-type t --verbose --plot none --no-plot-tree --events \
+--chromosomes-bed /data1/shahs3/isabl_data_lake/software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed \
+--regions-bed /data1/shahs3/isabl_data_lake/software/dependencies/medicc2_nextflow/Davoli_2013_TSG_OG_genes_hg37.bed"""
 
 process START_MEDICC_PARALLEL {
-    conda '/juno/home/myersm2/miniconda3/envs/medicc_force_clonal'
+    conda '/home/havasove/miniconda3/envs/medicc2'
 
     input:
         tuple val(id), path(medicc_input), val(medicc_args)
@@ -22,7 +22,7 @@ process START_MEDICC_PARALLEL {
 
 
 process RUN_MEDICC_TASK {
-    conda '/juno/home/myersm2/miniconda3/envs/medicc_force_clonal'
+    conda '/home/havasove/miniconda3/envs/medicc2'
 
     input:
         tuple val(id), path(t)
@@ -48,7 +48,7 @@ process RUN_MEDICC_TASK {
 
 
 process FINISH_MEDICC_PARALLEL {
-    conda '/juno/home/myersm2/miniconda3/envs/medicc_force_clonal'
+    conda '/home/havasove/miniconda3/envs/medicc2'
 
     input:
         tuple val(id), path(result), path(task_idxs), path(sample_labels), path(medicc_input), val(medicc_args), val(output_directory)
@@ -66,8 +66,8 @@ process FINISH_MEDICC_PARALLEL {
 
     script:
     """
-    CHROMOSOMES_BED=/juno/work/shah/isabl_software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed
-    REGIONS_BED=/juno/work/shah/users/myersm2/misseg/sitka-medicc-reconstruct/Davoli_2013_TSG_OG_genes_hg37.bed
+    CHROMOSOMES_BED=/data1/shahs3/isabl_data_lake/software/dependencies/medicc2/medicc/objects/hg19_chromosome_arms.bed
+    REGIONS_BED=/data1/shahs3/isabl_data_lake/software/dependencies/medicc2_nextflow/Davoli_2013_TSG_OG_genes_hg37.bed
     medicc2 ${params.medicc_args} ${medicc_args} --finish-external-parallel --task-dir ./ ${medicc_input} ./
     """
 }
