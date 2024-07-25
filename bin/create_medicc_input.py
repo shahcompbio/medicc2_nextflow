@@ -181,7 +181,8 @@ def create_medicc2_input(
     new_cn_data = cn_data.copy()
     new_cn_data = new_cn_data.set_index(['chr', 'start', 'end', 'segment_idx', 'cell_id'])[cn_cols].unstack().fillna(0).stack(future_stack=True).reset_index()
     new_cn_data.segment_idx = new_cn_data.segment_idx.astype(int)
-    new_cn_data.cn = new_cn_data.cn.astype(int)
+    for col in cn_cols:
+        new_cn_data[col] = new_cn_data[col].astype(int)
     new_cn_data = new_cn_data.merge(metadata)[cn_data.columns]
     cn_data = new_cn_data
 
