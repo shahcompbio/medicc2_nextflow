@@ -138,6 +138,10 @@ def create_medicc2_input(
             cn_data.set_index(['chr', 'start', 'end', 'cell_id'])[cn_cols].unstack()
                 .isna().all(axis=1).groupby('chr').all().rename('null_chrom').reset_index().query('null_chrom == False'))
         cn_data = cn_data.merge(non_null_chroms[['chr']])
+        if use_minmaj:
+            cn_data = cn_data.drop(columns=['state', 'cn', 'Min', 'Maj'])
+        else:
+            cn_data = cn_data.drop(columns=['state', 'cn', 'A', 'B'])        
 
     # Resegment according to input segments
     if segments_filename is not None:
@@ -179,8 +183,15 @@ def create_medicc2_input(
 
     metadata = cn_data[['cell_id', 'original_sample_id', 'original_library_id']].drop_duplicates()
     new_cn_data = cn_data.copy()
-    new_cn_data = new_cn_data.set_index(['chr', 'start', 'end', 'segment_idx', 'cell_id'])[cn_cols].unstack().fillna(0).stack(future_stack=True).reset_index()
-    new_cn_data.segment_idx = new_cn_data.segment_idx.astype(int)
+
+    if 'segment_idx' in new_cn_data.columns:    
+        # average and round copy numbers within each segment
+        new_cn_data = new_cn_data.set_index(['chr', 'start', 'end', 'segment_idx', 'cell_id'])[cn_cols].unstack().fillna(0).stack(future_stack=True).reset_index()
+        new_cn_data.segment_idx = new_cn_data.segment_idx.astype(int)
+    else:    
+        # resegmentation is not present
+        new_cn_data = new_cn_data.set_index(['chr', 'start', 'end', 'cell_id'])[cn_cols].unstack().fillna(0).stack(future_stack=True).reset_index()
+
     for col in cn_cols:
         new_cn_data[col] = new_cn_data[col].astype(int)
     new_cn_data = new_cn_data.merge(metadata)[cn_data.columns]

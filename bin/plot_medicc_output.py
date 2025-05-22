@@ -121,7 +121,8 @@ def plot_tree_cn(medicc_input_filename, tree_filename, cn_profiles_filename, tre
 
     if 'diploid' in adata.obs.index:
         adata = adata[adata.obs.index != 'diploid']
-        tree.prune('diploid')
+        if 'diploid' in set(a.name for a in tree.get_terminals()):
+            tree.prune('diploid')
 
     tree, adata = scgenome.tl.align_cn_tree(tree, adata)
 
